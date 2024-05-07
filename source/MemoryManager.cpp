@@ -13,6 +13,30 @@
 #include <source_location>
 #include <regex>
 
+
+std::vector<uint8_t> GetSignatureBytes(const std::string& str)
+{
+    std::vector<uint8_t> bytes;
+    for (size_t i = 0; i < str.size();)
+    {
+        if (str[i] == ' ')
+        {
+            i += 1;
+            continue;
+        }
+        if (str[i] == '?')
+        {
+            bytes.push_back('\?');
+            i+1 < str.size() and str[i+1] == '?' ? i += 2 : i++;
+            continue;
+        }
+        bytes.push_back(std::stoi(str.substr(i,2), nullptr,16));
+        i += 2;
+    }
+    return bytes;
+}
+
+
 namespace memory_manager
 {
 
@@ -167,6 +191,33 @@ namespace memory_manager
 
                 return std::pair{start, end}; // Size of the module
             }
+        }
+        return std::nullopt;
+    }
+
+    std::optional<uintptr_t>
+    MemoryManager::PatternScan(const std::string &moduleName, const std::string &pattern) const
+    {
+        const auto range = GetModuleExecutableMemoryRange(moduleName);
+
+        if (!range)
+            return std::nullopt;
+
+        const auto patternBytes = GetSignatureBytes(pattern);
+
+        const auto code = ReadMemory(range->first, range->second - range->first);
+
+        for (uintptr_t i = 0; i < code.size() - patternBytes.size(); i++)
+        {
+            bool found = true;
+
+            for (uintptr_t j = 0; j < patternBytes.size(); j++)
+            {
+                found = patternBytes[j] == '\?' or patternBytes[j] == code.at(i+j);
+                if (not found) break;
+            }
+            if (found)
+                return range->first + i;
         }
         return std::nullopt;
     }

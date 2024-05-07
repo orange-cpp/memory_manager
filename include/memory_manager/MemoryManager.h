@@ -26,6 +26,9 @@ namespace memory_manager
         [[nodiscard]]
         std::optional<std::pair<uintptr_t,uintptr_t>>
         GetModuleExecutableMemoryRange(const std::string& moduleName) const;
+        [[nodiscard]]
+        std::optional<uintptr_t> PatternScan(const std::string& moduleName, const std::string& pattern) const;
+
 
         [[nodiscard]]
         std::vector<uint8_t> ReadMemory(uintptr_t addr, size_t size) const;
