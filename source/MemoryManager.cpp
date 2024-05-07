@@ -129,4 +129,46 @@ namespace memory_manager
 
     }
 
+    std::optional<std::pair<uintptr_t,uintptr_t>>
+    MemoryManager::GetModuleExecutableMemoryRange(const std::string &moduleName) const
+    {
+        const std::string maps_path = std::format("/proc/{}/maps", m_procId);
+        std::ifstream maps(maps_path);
+        std::string line;
+        while (getline(maps, line))
+        {
+            if (line.find(moduleName) == std::string::npos)
+                continue;
+
+
+            while (getline(maps, line))
+            {
+                std::istringstream iss(line);
+                std::string address, perms, offset, dev, inode;
+                iss >> address >> perms >> offset >> dev >> inode;
+
+                if (inode != "0")
+                    return std::nullopt;
+
+                if (!perms.contains('x'))
+                    continue;
+
+                const size_t pos = address.find('-');
+
+                if (pos == std::string::npos)
+                    continue;
+
+                const std::string start_str = address.substr(0, pos);
+                const std::string end_str = address.substr(pos + 1);
+
+                const auto start = std::stoull(start_str, nullptr, 16);
+                const auto end = std::stoull(end_str, nullptr, 16);
+
+
+                return std::pair{start, end}; // Size of the module
+            }
+        }
+        return std::nullopt;
+    }
+
 } // memory_manager

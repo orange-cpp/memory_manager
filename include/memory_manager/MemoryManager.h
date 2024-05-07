@@ -24,6 +24,10 @@ namespace memory_manager
         std::optional<uintptr_t> GetModuleBaseAddressByName(const std::string& moduleName) const;
 
         [[nodiscard]]
+        std::optional<std::pair<uintptr_t,uintptr_t>>
+        GetModuleExecutableMemoryRange(const std::string& moduleName) const;
+
+        [[nodiscard]]
         std::vector<uint8_t> ReadMemory(uintptr_t addr, size_t size) const;
 
         void WriteMemory(void* buffer, uintptr_t addr, size_t size);
