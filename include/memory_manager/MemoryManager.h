@@ -52,7 +52,7 @@ namespace memory_manager
 
             const auto readBytes = process_vm_readv(m_procId, &localMemoryRegion, 1, &remoteMemoryRegion, 1, 0);
 
-            return readBytes ? std::optional(buffer) : std::nullopt;
+            return readBytes > 0 ? std::optional(buffer) : std::nullopt;
         }
 
     private:
