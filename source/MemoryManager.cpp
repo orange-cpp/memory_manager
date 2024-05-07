@@ -8,7 +8,6 @@
 #include <ranges>
 #include <algorithm>
 #include <fstream>
-#include <sys/uio.h>
 #include <format>
 #include <source_location>
 #include <regex>

@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstdint>
 #include <any>
-
+#include <sys/uio.h>
 namespace memory_manager
 {
 
@@ -45,7 +45,14 @@ namespace memory_manager
         template<class type>
         std::optional<type> ReadMemory(uintptr_t addr) const
         {
-            return *reinterpret_cast<type*>(ReadMemory(addr, sizeof(type)).data());
+            type buffer;
+
+            iovec localMemoryRegion{.iov_base = &buffer, .iov_len = sizeof(buffer)};
+            iovec remoteMemoryRegion{.iov_base = reinterpret_cast<void*>(addr), .iov_len = sizeof(buffer) };
+
+            const auto readBytes = process_vm_readv(m_procId, &localMemoryRegion, 1, &remoteMemoryRegion, 1, 0);
+
+            return readBytes ? std::optional(buffer) : std::nullopt;
         }
 
     private:
